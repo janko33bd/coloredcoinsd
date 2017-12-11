@@ -15,7 +15,7 @@
     "bitcore-p2p": "https://github.com/janko33bd/bitcore-p2p.git#nc-blackcore-p2p",
     "body-parser": "1.16.1",
     "bs58check": "^1.0.3",
-    "cc-assetid-encoder": "^0.6.0",
+    "cc-assetid-encoder": "https://github.com/janko33bd/AssetId.git#iris",
     "cc-errors": "~0.0.7",
     "cc-request-id": "~0.0.3",
     "cc-transaction": "^1.2.0",
