@@ -1,20 +1,20 @@
 var config = {
   env: 'development',
-  testnet: true,
+  testnet: false,
   serverName: 'coloredcoinsd',
-  google_api_key: 'AIzaSyBJfxobLSO_IM9tI1ATWpOelVInNuH1kBM',
+  google_api_key: '',
   machineurl: 'http://api.coloredcoins.org',
-  useS3: true,
+  useS3: false,
   bitcoind: {
-    host: 'testnet.api.colu.co',
-    port: 80,
+    host: '127.0.0.1',
+    port: 15715,
     user: 'admin',
     pass: '9lpcjZpv221j47zF',
-    path: '/rpc',
+    path: '/',
     timeout: 30000
   },
   blockexplorer: {
-    url: 'https://testnet.explorer.coloredcoins.org'
+    url: 'http://13.93.55.135:9080'
   },
   torrentServer: {
     url: 'http://dev.metadata.coloredcoins.org'

@@ -198,10 +198,10 @@ module.exports = (function () {
         console.log("issueAsset")
         validateInput(req.body).
         then(checkParameters).
-        then(api.uploadMetadata).
+        //then(api.uploadMetadata).
         then(api.createIssueTransaction).
         then(function(data) {
-          api.seedMetadata(data.metadata.sha1)
+          //api.seedMetadata(data.metadata.sha1)
           var response = {txHex: data.txHex, assetId: data.assetId, coloredOutputIndexes: data.coloredOutputIndexes }
           if(data.metadata.privateKey) { response.privateKey = data.metadata.privateKey }
           if(data.multisigOutputs && data.multisigOutputs.length > 0) { response.multisigOutputs = data.multisigOutputs }
@@ -282,10 +282,10 @@ module.exports = (function () {
             console.log('parsed ok');
             validateInput(req.body, null, ['from', 'sendutxo']).
             then(checkParameters).
-            then(api.uploadMetadata).
+            //then(api.uploadMetadata).
             then(api.createSendAssetTansaction).
             then(function(data) {
-                 api.seedMetadata(data.metadata.sha1);
+                 //api.seedMetadata(data.metadata.sha1);
                  res.json({ txHex: data.tx.toHex(), metadataSha1: data.metadata.sha1, multisigOutputs: data.multisigOutputs });
             })
             .catch(next);  
