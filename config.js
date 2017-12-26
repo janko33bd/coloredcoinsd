@@ -28,11 +28,11 @@ var config = {
     method_dim_id: 2,
     version_dim_id: 3
   },
-  minfee: 1000,
+  minfee: 10000,
   writemultisig: true,
-  mindustvalue: 600,
-  mindustvaluemultisig: 700,
-  feePerKb: 1000,
+  mindustvalue: 10000,
+  mindustvaluemultisig: 10000,
+  feePerKb: 10000,
   checkFinanceValidity: true
 }
 

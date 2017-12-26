@@ -183,7 +183,7 @@ module.exports = (function () {
             console.log('parsed ok');
             validateInput(req.body, null, ['from', 'sendutxo']).
             then(checkParameters).
-            //then(api.uploadMetadata).
+            then(api.uploadMetadata).
             then(api.createSendAssetTansaction).
             then(function(data){
               //api.seedMetadata(data.metadata.sha1)

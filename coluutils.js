@@ -277,7 +277,7 @@ data.tx.outs.forEach( function (txOut) {
          if(config.writemultisig) {
             if(!metadata.sha1 || !metadata.sha2) {
                console.log("something went wrong with torrent sever")
-               throw new errors.MetadataMissingShaError()
+               //throw new errors.MetadataMissingShaError()
             }
             encoder.setHash(metadata.sha1, metadata.sha2)
          }
@@ -322,7 +322,7 @@ data.tx.outs.forEach( function (txOut) {
                                 buffer.codeBuffer
                               ]);
 
-      args.tx.addOutput(ret, 0);
+      args.tx.addOutput(ret, config.mindustvalue);
 
       // add array of colored ouput indexes
       encoder.payments.forEach(function (payment) {
@@ -428,31 +428,40 @@ data.tx.outs.forEach( function (txOut) {
                         return;
                      }
 
-                     var sha1 = tx.ccdata[0].torrentHash || script.chunks[3]
-                     var sha2 = tx.ccdata[0].sha2 || script.chunks[2]
+                     var sha1 = hexDecode(tx.ccdata[0].torrentHash || script.chunks[3])
+                     var sha2 = hexDecode(tx.ccdata[0].sha2 || script.chunks[2])
                      hashes.push({sha1: sha1, sha2: sha2})
                      console.log('requesting torrent by hash: ' + sha1)
                      getHashes.push(self.downloadMetadata(sha1))
-                  })
-                  if(getHashes.length == 0) {
+                      data.metadataOfIssuence = {
+                          data:{
+                              assetName:sha1,
+                              issuer :sha2.substr(0,15),
+                              description: sha2.substr(16,32)
+                          }
+                      }
                       deferred.resolve(data)
-                  }
-                  else {
-                    Q.all(getHashes).done(function(metas){
-                        var first = safeParse(metas[0])
-                        var second = metas.length > 1 ? safeParse(metas[1]) : first
-                        data.metadataOfIssuence = first
-                        data.sha2Issue = hashes[0].sha2.toString('hex')
-                        if(metas.length > 1){
-                          data.metadataOfUtxo = second
-                          data.sha2Utxo = hashes[1].sha2.toString('hex')
-                        }
-                        deferred.resolve(data)
-                     }, function(err){
-                        deferred.reject(new Error(err))
-                     })
+                  })
 
-                  }
+                   if(getHashes.length == 0) {
+                       deferred.resolve(data)
+                   }
+                  // else {
+                  //   Q.all(getHashes).done(function(metas){
+                  //       var first = safeParse(metas[0])
+                  //       var second = metas.length > 1 ? safeParse(metas[1]) : first
+                  //       data.metadataOfIssuence = first
+                  //       data.sha2Issue = hashes[0].sha2.toString('hex')
+                  //       if(metas.length > 1){
+                  //         data.metadataOfUtxo = second
+                  //         data.sha2Utxo = hashes[1].sha2.toString('hex')
+                  //       }
+                  //       deferred.resolve(data)
+                  //    }, function(err){
+                  //       deferred.reject(new Error(err))
+                  //    })
+                  //
+                  // }
             })
           }
         }).
@@ -465,7 +474,13 @@ data.tx.outs.forEach( function (txOut) {
         return deferred.promise
     }
 
-
+    function hexDecode(text){
+        var hex = text.toString();//force conversion
+        var str = '';
+        for (var i = 0; i < hex.length; i += 2)
+            str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+        return str;
+    }
 
     coluutils.seedMetadata = function seedMetadata(hash) {
         var deferred = Q.defer()
@@ -588,30 +603,42 @@ data.tx.outs.forEach( function (txOut) {
                     headers:{"Content-Type": "application/json"} 
 
                 }
-        client.methods.upload(args, function (data, response) {
-            console.log(data);
-            if (response.statusCode == 200) {
-                console.log("upload:(200) ", data);
-                var torretdata = safeParse(data)
-                metadata.sha1 = torretdata.torrentHash
-                metadata.sha2 = torretdata.sha2
-                deferred.resolve(metadata);
-            }
-            else if(data) {
-                console.log("rejecting with: " + response.statusCode + " " + data);
-                deferred.reject(new errors.UploadMetadataError({status: response.statusCode, data: data}));
-            }
-            else {
-                console.log("rejecting with: " + response.statusCode);
-                deferred.reject(new errors.UploadMetadataError({status: response.statusCode}));
-            }
-        }).on('error', function (err) {
-                console.log('something went wrong on the request', err.request.options);
-                deferred.reject(new errors.UploadMetadataError({data: err.request.options}));
-            });
+        var mtData = metadata.metadata;
+        var aNameLn = Buffer.byteLength(mtData.assetName);
+        if(aNameLn > 20){
+            deferred.reject(new errors.UploadMetadataError({explanation: 'Asset Name too long: ' + aNameLn}))
+            return deferred.promise
+        }
 
+        var issuerLn = Buffer.byteLength(mtData.issuer);
+        if(issuerLn > 16){
+            deferred.reject(new errors.UploadMetadataError({explanation: 'Issuer too long: ' + issuerLn}))
+            return deferred.promise
+        }
+
+        var descrLn = Buffer.byteLength(mtData.description);
+        if(descrLn > 16){
+            deferred.reject(new errors.UploadMetadataError({explanation: 'Description too long: ' + descrLn}))
+            return deferred.promise
+        }
+
+        metadata.sha1 = hexEncode(mtData.assetName + new Array(21 - aNameLn).join(' '));
+        metadata.sha2 = hexEncode(mtData.issuer + new Array(17 - issuerLn).join(' ')  +
+                        mtData.description + new Array(17 - descrLn).join(' '));
+
+        deferred.resolve(metadata);
         return deferred.promise;
 
+    }
+
+    function hexEncode(text){
+        var arr1 = [];
+        for (var n = 0, l = text.length; n < l; n ++)
+        {
+            var hex = Number(text.charCodeAt(n)).toString(16);
+            arr1.push(hex);
+        }
+        return arr1.join('');
     }
 
     function tryEncryptData(metadata) {
