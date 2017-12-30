@@ -432,7 +432,7 @@ data.tx.outs.forEach( function (txOut) {
                      var sha2 = hexDecode(tx.ccdata[0].sha2 || script.chunks[2])
                      hashes.push({sha1: sha1, sha2: sha2})
                      console.log('requesting torrent by hash: ' + sha1)
-                     getHashes.push(self.downloadMetadata(sha1))
+                     getHashes.push(sha1)
                       data.metadataOfIssuence = {
                           data:{
                               assetName:sha1,
@@ -1139,7 +1139,7 @@ coluutils.requestParseTx = function requestParseTx(txid)
                                       buffer.codeBuffer
                                     ]);
 
-            tx.addOutput(ret, 0);
+            tx.addOutput(ret, config.mindustvalue);
             var lastOutputValue = getChangeAmount(tx, metadata.fee, totalInputs)
             var coloredChange = _.keys(assetList).some(function (assetId) {
               return assetList[assetId].change > 0
